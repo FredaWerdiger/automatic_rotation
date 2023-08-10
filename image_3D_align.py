@@ -4,53 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import optimize
 import os
-#
-# def rotate_and_resample(im, roll, pitch, yaw, show=False):
-#     arr = sitk.GetArrayFromImage(im)
-#     z, y, x = np.nonzero(arr)
-#     mean_z = np.mean(z)
-#     mean_x = np.mean(x)
-#     mean_y = np.mean(y)
-#
-#     # ROTATING
-#     rotation_centre = (int(np.ceil(mean_x)), int(np.ceil(mean_y)), int(np.ceil(mean_z)))
-#     rotation_centre_im = im.TransformIndexToPhysicalPoint(rotation_centre)
-#
-#     rigid_euler = sitk.Euler3DTransform()
-#     rigid_euler.SetRotation(roll, pitch, yaw)
-#
-#     rigid_versor = sitk.VersorRigid3DTransform()
-#     rigid_versor.SetMatrix(rigid_euler.GetMatrix())
-#     rigid_versor.SetCenter(rotation_centre_im)
-#
-#     # RESAMPLING
-#     interpolator = sitk.sitkNearestNeighbor
-#     default_value = 0
-#     resampled = sitk.Resample(
-#         im,
-#         im,
-#         rigid_versor,
-#         interpolator,
-#         default_value
-#     )
-#
-#     resampled = sitk.Cast(resampled, sitk.sitkFloat32)
-#
-#     if show:
-#         new_array = sitk.GetArrayFromImage(resampled)
-#         fig, ax = plt.subplots(1, 3, figsize=(10, 3))
-#         axial_slice_num = int(input('Enter axial slice number you wish to see:'))
-#         coronal_slice_num = int(input('Enter coronal slice number:'))
-#         sagittal_slice_num = int(input('Enter sagittal slice number:'))
-#         ax[0].imshow(new_array[axial_slice_num])
-#         ax[0].set_title('xy')
-#         ax[1].imshow(new_array[:, coronal_slice_num, :], interpolation='nearest', aspect='auto')
-#         ax[1].set_title('xz')
-#         ax[2].imshow(new_array[:, :, sagittal_slice_num], interpolation='nearest', aspect='auto')
-#         ax[2].set_title('yz')
-#         plt.show()
-#
-#     return resampled
 
 
 def rotate_and_resample_yaw(im, z_slice, yaw, show=False):
@@ -93,7 +46,7 @@ def rotate_and_resample_yaw(im, z_slice, yaw, show=False):
     return resampled
 
 
-def rotate_and_resample_2d(im, z_slice, angle, show=False):
+def rotate_and_resample_2d(im, z_slice, angle):
     im = im[:, :, z_slice]
     arr = sitk.GetArrayFromImage(im)
     y, x = np.nonzero(arr)
@@ -108,10 +61,6 @@ def rotate_and_resample_2d(im, z_slice, angle, show=False):
     rigid_euler.SetAngle(angle)
     rigid_euler.SetCenter(rotation_centre_im)
 
-    # rigid_versor = sitk.VersorRigid2DTransform()
-    # rigid_versor.SetMatrix(rigid_euler.GetMatrix())
-    # rigid_versor.SetCenter(rotation_centre_im)
-
     # RESAMPLING
     interpolator = sitk.sitkNearestNeighbor
     default_value = 0
@@ -125,13 +74,6 @@ def rotate_and_resample_2d(im, z_slice, angle, show=False):
 
     resampled = sitk.Cast(resampled, sitk.sitkFloat32)
 
-    if show:
-        new_array = sitk.GetArrayFromImage(resampled)
-        plt.imshow(new_array, cmap='gray')
-        # plt.set_title('xy')
-
-        plt.show()
-        plt.close()
     return resampled
 
 
