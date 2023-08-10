@@ -135,12 +135,16 @@ def main(im_path, mask_path, show_images=False, save_loc=None):
         for ax in axs.ravel():
             ax.axis('off')
         im_array = np.flipud(sitk.GetArrayFromImage(im[:, :, z_slice]))
-        m = np.tan(angle_final)
-        c = centroid_index[1] + (centroid_index[0]*np.tan(angle_final))
+        m = np.tan(angle_final[0])
+        c = centroid_index[1] + (centroid_index[0]*np.tan(angle_final[0]))
         x = np.linspace(0, im_array.shape[1])
         y = -(m*x) + c
         axs[0].imshow(im_array, cmap='gray')
         axs[0].plot(y, x, 'r')
+        m = round(m, 2)
+        c = round(c, 2)
+        fontdict = {'color':'y'}
+        axs[0].text(im_array.shape[1]/5, im_array.shape[1]-30, f"y = {round(m,2)}x + {round(c,2)}", fontdict=fontdict)
         axs[0].set_title('Original')
         axs[1].imshow(np.flipud(sitk.GetArrayFromImage(resampled[:, :, z_slice])), cmap='gray')
         axs[1].set_title('Result')
