@@ -116,7 +116,8 @@ def main(im_path, mask_path, show_images=False, save_loc=None):
     stats = sitk.LabelShapeStatisticsImageFilter()
     stats.Execute(mask)
     centroid = stats.GetCentroid(1)
-    z_slice = mask.TransformPhysicalPointToIndex(centroid)[2]
+    centroid_index = mask.TransformPhysicalPointToIndex(centroid)
+    z_slice = centroid_index[2]
 
     # optimize
     result = optimize.minimize(
@@ -133,9 +134,15 @@ def main(im_path, mask_path, show_images=False, save_loc=None):
         fig, axs = plt.subplots(1, 2, figsize=(6, 3))
         for ax in axs.ravel():
             ax.axis('off')
-        axs[0].imshow(sitk.GetArrayFromImage(im[:, :, z_slice]), cmap='gray')
+        im_array = np.flipud(sitk.GetArrayFromImage(im[:, :, z_slice]))
+        m = np.tan(angle_final)
+        c = centroid_index[1] + (centroid_index[0]*np.tan(angle_final))
+        x = np.linspace(0, im_array.shape[1])
+        y = -(m*x) + c
+        axs[0].imshow(im_array, cmap='gray')
+        axs[0].plot(y, x, 'r')
         axs[0].set_title('Original')
-        axs[1].imshow(sitk.GetArrayFromImage(resampled[:, :, z_slice]), cmap='gray')
+        axs[1].imshow(np.flipud(sitk.GetArrayFromImage(resampled[:, :, z_slice])), cmap='gray')
         axs[1].set_title('Result')
         plt.show()
         plt.close()
@@ -143,6 +150,7 @@ def main(im_path, mask_path, show_images=False, save_loc=None):
     if save_loc is not None:
         sitk.WriteImage(resampled, os.path.join(save_loc, os.path.basename(im_path).split('.nii.gz')[0] + '_aligned.nii.gz'))
 
+    return angle_final
 
 if __name__ == '__main__':
 
