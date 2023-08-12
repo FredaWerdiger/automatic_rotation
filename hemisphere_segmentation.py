@@ -353,8 +353,7 @@ def main():
 
 
     post_transforms = Compose([
-            EnsureTyped(keys=["pred", "label"]),
-            EnsureChannelFirstd(keys="label"),
+            EnsureTyped(keys=["pred"]),
             Invertd(
                 keys=["pred"],
                 transform=test_transforms,
@@ -365,7 +364,6 @@ def main():
                 nearest_interp=[False],
                 to_tensor=[True],
             ),
-            AsDiscreted(keys="label", to_onehot=2),
             AsDiscreted(keys="pred", argmax=True, to_onehot=2),
             SaveImaged(
                 keys="pred",
@@ -393,8 +391,8 @@ def main():
 
     model.eval()
 
-    results = pd.DataFrame(columns=['id', 'subject', 'dice'])
-    results['id'] = test_ids
+    # results = pd.DataFrame(columns=['id', 'subject', 'dice'])
+    # results['id'] = test_ids
     ctp_dl_df['dl_id'] = ctp_dl_df['dl_id'].apply(lambda row: str(row).zfill(3))
     ctp_dl_df.set_index('dl_id', inplace=True)
 
@@ -405,31 +403,26 @@ def main():
 
             test_data = [post_transforms(i) for i in decollate_batch(test_data)]
 
-            test_output, test_label, test_image = from_engine(["pred", "label", "image"])(test_data)
+            test_output, test_label, test_image = from_engine(["pred", "image"])(test_data)
 
-            a = dice_metric(y_pred=test_output, y=test_label)
-
-            dice_score = round(a.item(), 4)
-            print(f"Dice score for image: {dice_score:.4f}")
             original_image = loader(test_data[0]["image_meta_dict"]["filename_or_obj"])
             original_image = original_image[0]  # image data
             original_image = original_image[:, :, :, 0]
-            ground_truth = test_label[0][1].detach().numpy()
             prediction = test_output[0][1].detach().numpy()
             name = os.path.basename(
                 test_data[0]["image_meta_dict"]["filename_or_obj"]).split('.nii.gz')[0].split('_')[1]
             subject = ctp_dl_df.loc[[name], "subject"].values[0]
-            results.loc[results.id == name, 'dice'] = dice_score
-            results.loc[results.id == name, 'subject'] = subject
-        # aggregate the final mean dice result
-        metric = dice_metric.aggregate().item()
-        # reset the status for next validation round
-        dice_metric.reset()
+            # results.loc[results.id == name, 'dice'] = dice_score
+            # results.loc[results.id == name, 'subject'] = subject
+        # # aggregate the final mean dice result
+        # metric = dice_metric.aggregate().item()
+        # # reset the status for next validation round
+        # dice_metric.reset()
 
-    print(f"Mean dice on test set: {metric:.4f}")
-    results['mean_dice'] = metric
-    print(results)
-    results.to_csv(directory + 'out_' + out_tag + '/results.csv', index=False)
+    # print(f"Mean dice on test set: {metric:.4f}")
+    # results['mean_dice'] = metric
+    # print(results)
+    # results.to_csv(directory + 'out_' + out_tag + '/results.csv', index=False)
 
 if __name__ == '__main__':
     main()
