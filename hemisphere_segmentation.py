@@ -212,7 +212,7 @@ def main():
         in_channels=ch_in,
         out_channels=2,
         channels=channels,
-        strides=(2, 2, 2, 2),
+        strides=(2, 2, 2),
         num_res_units=2,
         norm=Norm.BATCH,
         dropout=0.2).to(device)
