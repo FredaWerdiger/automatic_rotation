@@ -5,14 +5,10 @@ import sys
 sys.path.append('/data/gpfs/projects/punim1086/ctp_project/MONAI/')
 sys.path.append('../MONAI/')
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
-import math
-import tempfile
 import time
 import matplotlib.pyplot as plt
 import numpy as np
 import glob
-from sklearn.metrics import f1_score
-from monai.config import print_config
 from monai.data import Dataset, CacheDataset, DataLoader, decollate_batch
 from monai.handlers.utils import from_engine
 from monai.losses import DiceLoss
@@ -29,7 +25,6 @@ from monai.transforms import (
     LoadImaged,
     NormalizeIntensityd,
     RandAffined,
-    RandFlipd,
     RandScaleIntensityd,
     RandShiftIntensityd,
     EnsureChannelFirstd,
@@ -37,12 +32,10 @@ from monai.transforms import (
     EnsureType,
     Resized,
     SaveImaged,
-    SplitDimd
 )
 
-from monai.utils import first, set_determinism
 from monai_fns import *
-# from densenet import DenseNetFCN
+from densenet import DenseNetFCN
 from sklearn.model_selection import train_test_split
 
 import torch
@@ -106,7 +99,7 @@ def main():
     test_files = make_dict(test_ids)
 
     max_epochs = 600
-    image_size = [256]
+    image_size = [128]
     batch_size = 2
     val_interval = 2
 
@@ -120,9 +113,9 @@ def main():
                         spatial_size=[256]*3),
                 NormalizeIntensityd(keys=["image"], nonzero=True, channel_wise=True),
                 RandAffined(keys=['image', 'label'], prob=0.5, translate_range=10),
-                RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
-                RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=1),
-                RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=2),
+                # RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
+                # RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=1),
+                # RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=2),
                 RandScaleIntensityd(keys=["image"], factors=0.1, prob=1.0),
                 RandShiftIntensityd(keys=["image"], offsets=0.1, prob=1.0),
                 EnsureTyped(keys=["image", "label"]),
@@ -188,7 +181,10 @@ def main():
                              pin_memory=True)
 
     s = 150
-    data_example = train_dataset[1]
+    import random
+    m = random.randint(0, len(train_files))
+    s = random.randint(100, 200)
+    data_example = train_dataset[m]
     ch_in = data_example['image'].shape[0]
     plt.figure("sanity check")
     plt.subplot(1, 2, 1)
@@ -217,6 +213,15 @@ def main():
         norm=Norm.BATCH,
         dropout=0.2).to(device)
 
+    model = DenseNetFCN(
+        ch_in=2,
+        ch_out_init=48,
+        num_classes=2,
+        growth_rate=16,
+        layers=(4, 5, 7, 10, 12),
+        bottleneck=True,
+        bottleneck_layer=15
+    ).to(device)
 
     loss_function = DiceLoss(smooth_dr=1e-5,
                              smooth_nr=0,
@@ -239,7 +244,7 @@ def main():
     post_pred = Compose([EnsureType(), AsDiscrete(argmax=True, to_onehot=2)])
     post_label = Compose([EnsureType(), AsDiscrete(to_onehot=2)])
     start = time.time()
-    model_path = 'best_metric_' + model._get_name() + '_' + str(max_epochs) + '_.pth'
+    model_path = 'best_metric_' + model._get_name() + '_' + str(max_epochs) + '.pth'
 
     for epoch in range(max_epochs):
         print("-" * 10)
