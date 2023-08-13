@@ -392,7 +392,8 @@ def main():
         norm=Norm.BATCH,
     ).to(device)
 
-    model.load_state_dict(torch.load(model_path))
+    model.load_state_dict(torch.load(os.path.join(
+                        directory, 'out_' + out_tag, model_path)))
 
     model.eval()
 
