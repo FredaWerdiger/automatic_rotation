@@ -151,7 +151,7 @@ def main():
                                 usecols=['subject', 'segmentation_type', 'dl_id'])
 
     data_dir = os.path.join(directory, 'DATA')
-    out_tag = 'right_hemisphere_mask'
+    out_tag = 'right_hemisphere_mask/densenet'
     all_image_paths = glob.glob(os.path.join(data_dir, 'ncct', '*'))
     all_image_paths.sort()
     mask_paths = glob.glob(os.path.join(data_dir, 'right_hemisphere_mask', '*'))
@@ -300,6 +300,16 @@ def main():
         channels=channels,
         strides=(2, 2, 2),
         dropout=0.2).to(device)
+
+    model = DenseNetFCN(
+        ch_in=ch_in,
+        ch_out_init=36,
+        num_classes=2,
+        growth_rate=12,
+        layers=(4, 4, 4, 4, 4),
+        bottleneck=True,
+        bottleneck_layer=4
+    ).to(device)
 
     loss_function = DiceLoss(smooth_dr=1e-5,
                              smooth_nr=0,
