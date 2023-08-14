@@ -301,16 +301,6 @@ def main():
         strides=(2, 2, 2),
         dropout=0.2).to(device)
 
-    model = DenseNetFCN(
-        ch_in=2,
-        ch_out_init=48,
-        num_classes=2,
-        growth_rate=16,
-        layers=(4, 5, 7, 10, 12),
-        bottleneck=True,
-        bottleneck_layer=15
-    ).to(device)
-
     loss_function = DiceLoss(smooth_dr=1e-5,
                              smooth_nr=0,
                              to_onehot_y=True,
