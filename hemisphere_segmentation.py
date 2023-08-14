@@ -188,13 +188,13 @@ def main():
 
         return files_dict
 
-    train_files = make_dict(train_ids)[:4]
-    val_files = make_dict(val_ids)[:4]
-    test_files = make_dict(test_ids)[:4]
+    train_files = make_dict(train_ids)[:2]
+    val_files = make_dict(val_ids)[:2]
+    test_files = make_dict(test_ids)[:1]
 
     max_epochs = 2
     image_size = [32]
-    batch_size = 2
+    batch_size = 1
     val_interval = 2
 
     train_transforms = Compose(
@@ -303,8 +303,7 @@ def main():
 
     loss_function = DiceLoss(smooth_dr=1e-5,
                              smooth_nr=0,
-                             to_onehot_y=True,
-                             softmax=True,
+                             softmax=False,
                              include_background=False)
 
     learning_rate = 1e-4
@@ -312,7 +311,7 @@ def main():
                      learning_rate,
                      weight_decay=1e-5)
 
-    dice_metric = DiceMetric(include_background=False, reduction='mean')
+    dice_metric = DiceMetric( reduction='mean')
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max_epochs)
     epoch_loss_values = []
     dice_metric_values = []
@@ -450,16 +449,16 @@ def main():
             to_tensor=[True],
         ),
         AsDiscreted(keys="pred", argmax=True, to_onehot=None),
-        SaveImaged(
-            keys="pred",
-            meta_keys="pred_meta_dict",
-            output_dir=pred_dir,
-            output_postfix="seg",
-            resample=False,
-            separate_folder=False)
+        # SaveImaged(
+        #     keys="pred",
+        #     meta_keys="pred_meta_dict",
+        #     output_dir=pred_dir,
+        #     output_postfix="seg",
+        #     resample=False,
+        #     separate_folder=False)
     ])
 
-    dice_metric = DiceMetric(include_background=False, reduction="mean")
+    dice_metric = DiceMetric(reduction="mean")
     loader = LoadImage(image_only=False)
     device = 'cpu' if not torch.cuda.is_available() else 'cuda'
 
@@ -481,6 +480,7 @@ def main():
             test_data = [post_transforms(i) for i in decollate_batch(test_data)]
 
             test_output, test_image = from_engine(["pred", "image"])(test_data)
+            print(test_output[0].shape)
 
             original_image = loader(test_data[0]["image_meta_dict"]["filename_or_obj"])
             original_image = original_image[0]  # image data
