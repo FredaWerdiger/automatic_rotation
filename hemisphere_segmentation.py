@@ -382,25 +382,6 @@ def main():
     dice_metric = DiceMetric(include_background=False, reduction="mean")
     loader = LoadImage(image_only=False)
     device = 'cpu' if not torch.cuda.is_available() else 'cuda'
-    model = UNet(
-        spatial_dims=3,
-        in_channels=2,
-        out_channels=2,
-        channels=(32, 64, 128, 256),
-        strides=(2, 2, 2),
-        num_res_units=2,
-        norm=Norm.BATCH,
-    ).to(device)
-
-    model = DenseNetFCN(
-        ch_in=2,
-        ch_out_init=48,
-        num_classes=2,
-        growth_rate=16,
-        layers=(4, 5, 7, 10, 12),
-        bottleneck=True,
-        bottleneck_layer=15
-    ).to(device)
 
     model.load_state_dict(torch.load(os.path.join(
                         directory, 'out_' + out_tag, model_path)))
