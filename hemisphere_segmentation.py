@@ -180,24 +180,24 @@ def main():
                              batch_size=1,
                              pin_memory=True)
 
-    s = 150
-    import random
-    m = random.randint(0, len(train_files))
-    s = random.randint(100, 200)
-    data_example = train_dataset[m]
+    # s = 150
+    # import random
+    # m = random.randint(0, len(train_files))
+    # s = random.randint(100, 200)
+    data_example = test_dataset[0]
     ch_in = data_example['image'].shape[0]
-    plt.figure("sanity check")
-    plt.subplot(1, 2, 1)
-    plt.title(f"image")
-    plt.imshow(np.flipud(data_example["image"][0, :, :, s].detach().cpu()), cmap="gray")
-    plt.axis('off')
-    print(f"label shape: {data_example['label'].shape}")
-    plt.subplot(1, 2, 2)
-    plt.title("label")
-    plt.imshow(np.flipud(data_example["label"][0, :, :, s].detach().cpu()), cmap="gray")
-    plt.axis('off')
-    plt.show()
-    plt.close()
+    # plt.figure("sanity check")
+    # plt.subplot(1, 2, 1)
+    # plt.title(f"image")
+    # plt.imshow(np.flipud(data_example["image"][0, :, :, s].detach().cpu()), cmap="gray")
+    # plt.axis('off')
+    # print(f"label shape: {data_example['label'].shape}")
+    # plt.subplot(1, 2, 2)
+    # plt.title("label")
+    # plt.imshow(np.flipud(data_example["label"][0, :, :, s].detach().cpu()), cmap="gray")
+    # plt.axis('off')
+    # plt.show()
+    # plt.close()
 
 
     device = 'cuda'
@@ -400,7 +400,7 @@ def main():
 
             test_data = [post_transforms(i) for i in decollate_batch(test_data)]
 
-            test_output, test_label, test_image = from_engine(["pred", "image"])(test_data)
+            test_output, test_image = from_engine(["pred", "image"])(test_data)
 
             original_image = loader(test_data[0]["image_meta_dict"]["filename_or_obj"])
             original_image = original_image[0]  # image data
