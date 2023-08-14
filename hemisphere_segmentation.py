@@ -485,6 +485,7 @@ def main():
             original_image = loader(test_data[0]["image_meta_dict"]["filename_or_obj"])
             original_image = original_image[0]  # image data
             prediction = test_output[0].detach().numpy()
+            prediction = prediction[0]
             name = os.path.basename(
                 test_data[0]["image_meta_dict"]["filename_or_obj"]).split('.nii.gz')[0].split('_')[1]
             subject = ctp_dl_df.loc[[name], "subject"].values[0]
