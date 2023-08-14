@@ -151,10 +151,10 @@ def main():
                                 usecols=['subject', 'segmentation_type', 'dl_id'])
 
     data_dir = os.path.join(directory, 'DATA')
-    out_tag = 'left_hemisphere_mask/densnet'
+    out_tag = 'right_hemisphere_mask'
     all_image_paths = glob.glob(os.path.join(data_dir, 'ncct', '*'))
     all_image_paths.sort()
-    mask_paths = glob.glob(os.path.join(data_dir, 'left_hemisphere_mask', '*'))
+    mask_paths = glob.glob(os.path.join(data_dir, 'right_hemisphere_mask', '*'))
     mask_paths.sort()
 
     ids = [os.path.basename(path).split('.nii.gz')[0].split('_')[1] for path in mask_paths]
@@ -207,9 +207,6 @@ def main():
                     spatial_size=[256] * 3),
             NormalizeIntensityd(keys=["image"], nonzero=True, channel_wise=True),
             RandAffined(keys=['image', 'label'], prob=0.5, translate_range=10),
-            # RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=0),
-            # RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=1),
-            # RandFlipd(keys=["image", "label"], prob=0.5, spatial_axis=2),
             RandScaleIntensityd(keys=["image"], factors=0.1, prob=1.0),
             RandShiftIntensityd(keys=["image"], offsets=0.1, prob=1.0),
             EnsureTyped(keys=["image", "label"]),
@@ -296,14 +293,12 @@ def main():
     device = 'cuda'
     channels = (32, 64, 128, 256)
 
-    model = UNet(
+    model = AttentionUnet(
         spatial_dims=3,
         in_channels=ch_in,
         out_channels=2,
         channels=channels,
         strides=(2, 2, 2),
-        num_res_units=2,
-        norm=Norm.BATCH,
         dropout=0.2).to(device)
 
     model = DenseNetFCN(
