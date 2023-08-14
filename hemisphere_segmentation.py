@@ -293,13 +293,15 @@ def main():
     device = 'cuda'
     channels = (32, 64, 128, 256)
 
-    model = AttentionUnet(
+    model = UNet(
         spatial_dims=3,
         in_channels=ch_in,
         out_channels=1,
         channels=channels,
         strides=(2, 2, 2),
-        dropout=0.2).to(device)
+        dropout=0.2,
+        num_res_units=2,
+        norm=Norm.BATCH).to(device)
 
 
     loss_function = DiceLoss(smooth_dr=1e-5,
