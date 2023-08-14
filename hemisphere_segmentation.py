@@ -188,12 +188,12 @@ def main():
 
         return files_dict
 
-    train_files = make_dict(train_ids)
-    val_files = make_dict(val_ids)
-    test_files = make_dict(test_ids)
+    train_files = make_dict(train_ids)[:4]
+    val_files = make_dict(val_ids)[:4]
+    test_files = make_dict(test_ids)[:4]
 
     max_epochs = 600
-    image_size = [128]
+    image_size = [32]
     batch_size = 2
     val_interval = 2
 
@@ -296,7 +296,7 @@ def main():
     model = AttentionUnet(
         spatial_dims=3,
         in_channels=ch_in,
-        out_channels=2,
+        out_channels=1,
         channels=channels,
         strides=(2, 2, 2),
         dropout=0.2).to(device)
@@ -319,8 +319,8 @@ def main():
     best_metric = -1
     best_metric_epoch = -1
 
-    post_pred = Compose([EnsureType(), AsDiscrete(argmax=True, to_onehot=2)])
-    post_label = Compose([EnsureType(), AsDiscrete(to_onehot=2)])
+    post_pred = Compose([EnsureType(), AsDiscrete(argmax=True, to_onehot=None)])
+    post_label = Compose([EnsureType(), AsDiscrete(to_onehot=None)])
     start = time.time()
     model_path = 'best_metric_' + model._get_name() + '_' + str(max_epochs) + '.pth'
 
@@ -449,7 +449,7 @@ def main():
             nearest_interp=[False],
             to_tensor=[True],
         ),
-        AsDiscreted(keys="pred", argmax=True, to_onehot=2),
+        AsDiscreted(keys="pred", argmax=True, to_onehot=None),
         SaveImaged(
             keys="pred",
             meta_keys="pred_meta_dict",
@@ -484,7 +484,7 @@ def main():
 
             original_image = loader(test_data[0]["image_meta_dict"]["filename_or_obj"])
             original_image = original_image[0]  # image data
-            prediction = test_output[0][1].detach().numpy()
+            prediction = test_output[0].detach().numpy()
             name = os.path.basename(
                 test_data[0]["image_meta_dict"]["filename_or_obj"]).split('.nii.gz')[0].split('_')[1]
             subject = ctp_dl_df.loc[[name], "subject"].values[0]
