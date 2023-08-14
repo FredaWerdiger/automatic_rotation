@@ -301,6 +301,7 @@ def main():
         strides=(2, 2, 2),
         dropout=0.2).to(device)
 
+
     loss_function = DiceLoss(smooth_dr=1e-5,
                              smooth_nr=0,
                              include_background=False)
