@@ -191,12 +191,12 @@ def main():
 
         return files_dict
 
-    train_files = make_dict(train_ids)
-    val_files = make_dict(val_ids)
-    test_files = make_dict(test_ids)
+    train_files = make_dict(train_ids)[:4]
+    val_files = make_dict(val_ids)[:4]
+    test_files = make_dict(test_ids)[:4]
 
     max_epochs = 2
-    image_size = [128]
+    image_size = [64]
     batch_size = 2
     val_interval = 2
 
@@ -299,7 +299,7 @@ def main():
     model = UNet(
         spatial_dims=3,
         in_channels=ch_in,
-        out_channels=1,
+        out_channels=2,
         channels=channels,
         strides=(2, 2, 2),
         dropout=0.2,
@@ -309,22 +309,21 @@ def main():
 
     loss_function = DiceLoss(smooth_dr=1e-5,
                              smooth_nr=0,
-                             include_background=False)
-
+                             include_background=False, softmax=True, to_onehot_y=True)
     learning_rate = 1e-4
     optimizer = Adam(model.parameters(),
                      learning_rate,
                      weight_decay=1e-5)
 
-    dice_metric = DiceMetric( reduction='mean')
+    dice_metric = DiceMetric(include_background=False, reduction='mean')
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=max_epochs)
     epoch_loss_values = []
     dice_metric_values = []
     best_metric = -1
     best_metric_epoch = -1
 
-    post_pred = Compose([EnsureType(), AsDiscrete(argmax=True, to_onehot=None)])
-    post_label = Compose([EnsureType(), AsDiscrete(to_onehot=None)])
+    post_pred = Compose([EnsureType(), AsDiscrete(argmax=True, to_onehot=2)])
+    post_label = Compose([EnsureType(), AsDiscrete(to_onehot=2)])
     start = time.time()
     model_path = 'best_metric_' + model._get_name() + '_' + str(max_epochs) + '.pth'
 
@@ -340,8 +339,10 @@ def main():
                 batch_data["image"].to(device),
                 batch_data["label"].to(device),
             )
+            print(labels.shape)
             optimizer.zero_grad()
             outputs = model(inputs)
+            print(outputs.shape)
             loss = loss_function(outputs, labels)
             loss.backward()
             epoch_loss += loss.item()
@@ -453,7 +454,7 @@ def main():
             nearest_interp=[False],
             to_tensor=[True],
         ),
-        AsDiscreted(keys="pred", argmax=True, to_onehot=None),
+        AsDiscreted(keys="pred", argmax=True, to_onehot=2),
         # SaveImaged(
         #     keys="pred",
         #     meta_keys="pred_meta_dict",
@@ -489,8 +490,7 @@ def main():
 
             original_image = loader(test_data[0]["image_meta_dict"]["filename_or_obj"])
             original_image = original_image[0]  # image data
-            prediction = test_output[0].detach().numpy()
-            prediction = prediction[0]
+            prediction = test_output[0][1].detach().numpy()
             name = os.path.basename(
                 test_data[0]["image_meta_dict"]["filename_or_obj"]).split('.nii.gz')[0].split('_')[1]
             subject = ctp_dl_df.loc[[name], "subject"].values[0]
@@ -513,3 +513,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+
