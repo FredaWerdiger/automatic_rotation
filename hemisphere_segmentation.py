@@ -191,12 +191,12 @@ def main():
 
         return files_dict
 
-    train_files = make_dict(train_ids)[:4]
-    val_files = make_dict(val_ids)[:4]
-    test_files = make_dict(test_ids)[:4]
+    train_files = make_dict(train_ids)
+    val_files = make_dict(val_ids)
+    test_files = make_dict(test_ids)
 
-    max_epochs = 2
-    image_size = [64]
+    max_epochs = 600
+    image_size = [128]
     batch_size = 2
     val_interval = 2
 
