@@ -61,6 +61,9 @@ def define_zvalues(ct_img):
     if rem < 0:
         add_on = [z[-1] for n in range(abs(rem))]
         z.extend(add_on)
+    elif rem == 0:
+        z_min = z_min
+        z_max = z_max
     elif rem % 2 == 0:
         z_min = z_min + int(rem / 2 * steps) + 1
         z_max = z_max - int(rem / 2 * steps) + 1
@@ -151,10 +154,10 @@ def main():
                                 usecols=['subject', 'segmentation_type', 'dl_id'])
 
     data_dir = os.path.join(directory, 'DATA')
-    out_tag = 'right_hemisphere_mask'
+    out_tag = 'left_hemisphere_mask/small'
     all_image_paths = glob.glob(os.path.join(data_dir, 'ncct', '*'))
     all_image_paths.sort()
-    mask_paths = glob.glob(os.path.join(data_dir, 'right_hemisphere_mask', '*'))
+    mask_paths = glob.glob(os.path.join(data_dir, 'left_hemisphere_mask', '*'))
     mask_paths.sort()
 
     ids = [os.path.basename(path).split('.nii.gz')[0].split('_')[1] for path in mask_paths]
@@ -204,9 +207,9 @@ def main():
             Resized(keys=["image", "label"],
                     mode=['trilinear', "nearest"],
                     align_corners=[True, None],
-                    spatial_size=[256] * 3),
+                    spatial_size=image_size * 3),
             NormalizeIntensityd(keys=["image"], nonzero=True, channel_wise=True),
-            RandAffined(keys=['image', 'label'], prob=0.5, translate_range=10),
+            RandAffined(keys=['image', 'label'], prob=0.5, rotate_range=(0, [-1,1], [-1,1],[-1,1])),
             RandScaleIntensityd(keys=["image"], factors=0.1, prob=1.0),
             RandShiftIntensityd(keys=["image"], offsets=0.1, prob=1.0),
             EnsureTyped(keys=["image", "label"]),
@@ -220,7 +223,7 @@ def main():
             Resized(keys=["image", "label"],
                     mode=['trilinear', "nearest"],
                     align_corners=[True, None],
-                    spatial_size=[256] * 3),
+                    spatial_size=image_size * 3),
             NormalizeIntensityd(keys=["image"], nonzero=True, channel_wise=True),
             EnsureTyped(keys=["image", "label"]),
         ]
@@ -275,20 +278,20 @@ def main():
     # import random
     # m = random.randint(0, len(train_files))
     # s = random.randint(100, 200)
-    data_example = test_dataset[0]
+    data_example = train_dataset[0]
     ch_in = data_example['image'].shape[0]
-    # plt.figure("sanity check")
-    # plt.subplot(1, 2, 1)
-    # plt.title(f"image")
-    # plt.imshow(np.flipud(data_example["image"][0, :, :, s].detach().cpu()), cmap="gray")
-    # plt.axis('off')
-    # print(f"label shape: {data_example['label'].shape}")
-    # plt.subplot(1, 2, 2)
-    # plt.title("label")
-    # plt.imshow(np.flipud(data_example["label"][0, :, :, s].detach().cpu()), cmap="gray")
-    # plt.axis('off')
-    # plt.show()
-    # plt.close()
+    plt.figure("sanity check")
+    plt.subplot(1, 2, 1)
+    plt.title(f"image")
+    plt.imshow(np.flipud(data_example["image"][0, :, :, 10].detach().cpu()), cmap="gray")
+    plt.axis('off')
+    print(f"label shape: {data_example['label'].shape}")
+    plt.subplot(1, 2, 2)
+    plt.title("label")
+    plt.imshow(np.flipud(data_example["label"][0, :, :, 10].detach().cpu()), cmap="gray")
+    plt.axis('off')
+    plt.show()
+    plt.close()
 
     device = 'cuda'
     channels = (32, 64, 128, 256)
