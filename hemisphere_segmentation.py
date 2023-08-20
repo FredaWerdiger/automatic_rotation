@@ -103,9 +103,9 @@ def create_image(ct_img,
         print(i)
 
         axs[i].imshow(ct_img[:, :, z[i]], cmap='gray',
-                      interpolation='hanning', vmin=10, vmax=ct_img.max())
+                      interpolation='hanning', vmin=10, vmax=100)
         axs[i + 6].imshow(ct_img[:, :, z[i]], cmap='gray',
-                          interpolation='hanning', vmin=10, vmax=ct_img.max())
+                          interpolation='hanning', vmin=10, vmax=100)
         im = axs[i + 6].imshow(pred[:, :, z[i]], cmap='Reds', interpolation='hanning', alpha=0.5, vmin=0, vmax=1)
 
     if 12 > len(z):
@@ -115,9 +115,9 @@ def create_image(ct_img,
     for i in range(6, max2):
         print(i)
         axs[i + 6].imshow(ct_img[:, :, z[i]], cmap='gray',
-                          interpolation='hanning', vmin=10, vmax=ct_img.max())
+                          interpolation='hanning', vmin=10, vmax=100)
         axs[i + 12].imshow(ct_img[:, :, z[i]], cmap='gray',
-                           interpolation='hanning', vmin=10, vmax=ct_img.max())
+                           interpolation='hanning', vmin=10, vmax=100)
         im = axs[i + 12].imshow(pred[:, :, z[i]], cmap='Reds', interpolation='hanning', alpha=0.5, vmin=0, vmax=1)
 
     if not 12 > len(z):
@@ -128,9 +128,9 @@ def create_image(ct_img,
         for i in range(12, max3):
             print(i)
             axs[i + 12].imshow(ct_img[:, :, z[i]], cmap='gray',
-                               interpolation='hanning', vmin=10, vmax=ct_img.max())
+                               interpolation='hanning', vmin=10, vmax=100)
             axs[i + 18].imshow(ct_img[:, :, z[i]], cmap='gray',
-                               interpolation='hanning', vmin=10, vmax=ct_img.max())
+                               interpolation='hanning', vmin=10, vmax=100)
             axs[i + 18].imshow(pred[:, :, z[i]], cmap='Reds', interpolation='hanning', alpha=0.5, vmin=0, vmax=1)
 
     if savefile:
@@ -154,10 +154,10 @@ def main():
                                 usecols=['subject', 'segmentation_type', 'dl_id'])
 
     data_dir = os.path.join(directory, 'DATA')
-    out_tag = 'left_hemisphere_mask/small'
+    out_tag = 'right_hemisphere_mask'
     all_image_paths = glob.glob(os.path.join(data_dir, 'ncct', '*'))
     all_image_paths.sort()
-    mask_paths = glob.glob(os.path.join(data_dir, 'left_hemisphere_mask', '*'))
+    mask_paths = glob.glob(os.path.join(data_dir, 'right_hemisphere_mask', '*'))
     mask_paths.sort()
 
     ids = [os.path.basename(path).split('.nii.gz')[0].split('_')[1] for path in mask_paths]
@@ -191,12 +191,12 @@ def main():
 
         return files_dict
 
-    train_files = make_dict(train_ids)[:4]
-    val_files = make_dict(val_ids)[:4]
-    test_files = make_dict(test_ids)[:4]
+    train_files = make_dict(train_ids)
+    val_files = make_dict(val_ids)
+    test_files = make_dict(test_ids)
 
-    max_epochs = 2
-    image_size = [64]
+    max_epochs = 600
+    image_size = [128]
     batch_size = 2
     val_interval = 2
 
@@ -464,7 +464,7 @@ def main():
         #     separate_folder=False)
     ])
 
-    dice_metric = DiceMetric(reduction="mean")
+    dice_metric = DiceMetric(reduction="mean", include_background=False)
     loader = LoadImage(image_only=False)
     device = 'cpu' if not torch.cuda.is_available() else 'cuda'
 
