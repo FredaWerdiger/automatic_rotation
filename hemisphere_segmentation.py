@@ -326,112 +326,112 @@ def main():
     post_label = Compose([EnsureType(), AsDiscrete(to_onehot=2)])
     start = time.time()
     model_path = 'best_metric_' + model._get_name() + '_' + str(max_epochs) + '.pth'
-
-    for epoch in range(max_epochs):
-        print("-" * 10)
-        print(f"epoch {epoch + 1}/{max_epochs}")
-        epoch_loss = 0
-        step = 0
-        model.train()
-        for batch_data in train_loader:
-            step += 1
-            inputs, labels = (
-                batch_data["image"].to(device),
-                batch_data["label"].to(device),
-            )
-            print(labels.shape)
-            optimizer.zero_grad()
-            outputs = model(inputs)
-            print(outputs.shape)
-            loss = loss_function(outputs, labels)
-            loss.backward()
-            epoch_loss += loss.item()
-            optimizer.step()
-        lr_scheduler.step()
-        epoch_loss /= step
-        epoch_loss_values.append(epoch_loss)
-        print(f"epoch {epoch + 1} average loss: {epoch_loss:.4f}")
-
-        if (epoch + 1) % val_interval == 0:
-            model.eval()
-            print("Evaluating...")
-            with torch.no_grad():
-                for val_data in val_loader:
-                    val_inputs, val_labels = (
-                        val_data["image"].to(device),
-                        val_data["label"].to(device),
-                    )
-                    val_outputs = model(val_inputs)
-
-                    # compute metric for current iteration
-                    # dice_metric_torch_macro(val_outputs, val_labels.long())
-                    # now to for the MONAI dice metric
-                    val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
-                    val_labels = [post_label(i) for i in decollate_batch(val_labels)]
-                    dice_metric(val_outputs, val_labels)
-
-                mean_dice = dice_metric.aggregate().item()
-                dice_metric.reset()
-                dice_metric_values.append(mean_dice)
-
-                if mean_dice > best_metric:
-                    best_metric = mean_dice
-                    best_metric_epoch = epoch + 1
-                    torch.save(model.state_dict(), os.path.join(
-                        directory, 'out_' + out_tag, model_path))
-                    print("saved new best metric model")
-
-                print(
-                    f"current epoch: {epoch + 1} current mean dice: {mean_dice:.4f}"
-                    f"\nbest mean dice: {best_metric:.4f} "
-                    f"at epoch: {best_metric_epoch}"
-                )
-        del loss, outputs
-    end = time.time()
-    time_taken = end - start
-    print(f"Time taken: {round(time_taken, 0)} seconds")
-    time_taken_hours = time_taken / 3600
-    time_taken_mins = np.ceil((time_taken / 3600 - int(time_taken / 3600)) * 60)
-    time_taken_hours = int(time_taken_hours)
-
-    model_name = model._get_name()
-    loss_name = loss_function._get_name()
-    with open(
-            directory + 'out_' + out_tag + '/model_info_' + str(
-                max_epochs) + '_epoch_' + model_name + '_' + loss_name + '_.txt', 'w') as myfile:
-        myfile.write(f'Train dataset size: {len(train_files)}\n')
-        myfile.write(f'Validation dataset size: {len(val_files)}\n')
-        myfile.write(f'Test dataset size: {len(test_files)}\n')
-        myfile.write(f'Model: {model_name}\n')
-        myfile.write(f'Loss function: {loss_name}\n')
-        myfile.write(f'Initial Learning Rate: {learning_rate}\n')
-        myfile.write(f'Number of epochs: {max_epochs}\n')
-        myfile.write(f'Batch size: {batch_size}\n')
-        myfile.write(f'Image size: {image_size}\n')
-        myfile.write(f'channels: {channels}\n')
-        myfile.write(f'Validation interval: {val_interval}\n')
-        myfile.write(f"Best metric: {best_metric:.4f}\n")
-        myfile.write(f"Best metric epoch: {best_metric_epoch}\n")
-        myfile.write(f"Time taken: {time_taken_hours} hours, {time_taken_mins} mins\n")
-    # plot things
-    plt.figure("train", (12, 6))
-    plt.subplot(1, 2, 1)
-    plt.title("Average Loss per Epoch")
-    x = [i + 1 for i in range(len(epoch_loss_values))]
-    y = epoch_loss_values
-    plt.xlabel("epoch")
-    plt.plot(x, y)
-    plt.subplot(1, 2, 2)
-    plt.title("Mean Dice (Accuracy)")
-    x = [val_interval * (i + 1) for i in range(len(dice_metric_values))]
-    y = dice_metric_values
-    plt.xlabel("epoch")
-    plt.plot(x, y, 'b', label="Dice on validation data")
-    plt.legend(loc="center right")
-    plt.savefig(os.path.join(directory + 'out_' + out_tag,
-                             'loss_plot_' + str(max_epochs) + '_epoch_' + model_name + '_' + loss_name + '_.png'),
-                bbox_inches='tight', dpi=300, format='png')
-    plt.close()
+    #
+    # for epoch in range(max_epochs):
+    #     print("-" * 10)
+    #     print(f"epoch {epoch + 1}/{max_epochs}")
+    #     epoch_loss = 0
+    #     step = 0
+    #     model.train()
+    #     for batch_data in train_loader:
+    #         step += 1
+    #         inputs, labels = (
+    #             batch_data["image"].to(device),
+    #             batch_data["label"].to(device),
+    #         )
+    #         print(labels.shape)
+    #         optimizer.zero_grad()
+    #         outputs = model(inputs)
+    #         print(outputs.shape)
+    #         loss = loss_function(outputs, labels)
+    #         loss.backward()
+    #         epoch_loss += loss.item()
+    #         optimizer.step()
+    #     lr_scheduler.step()
+    #     epoch_loss /= step
+    #     epoch_loss_values.append(epoch_loss)
+    #     print(f"epoch {epoch + 1} average loss: {epoch_loss:.4f}")
+    #
+    #     if (epoch + 1) % val_interval == 0:
+    #         model.eval()
+    #         print("Evaluating...")
+    #         with torch.no_grad():
+    #             for val_data in val_loader:
+    #                 val_inputs, val_labels = (
+    #                     val_data["image"].to(device),
+    #                     val_data["label"].to(device),
+    #                 )
+    #                 val_outputs = model(val_inputs)
+    #
+    #                 # compute metric for current iteration
+    #                 # dice_metric_torch_macro(val_outputs, val_labels.long())
+    #                 # now to for the MONAI dice metric
+    #                 val_outputs = [post_pred(i) for i in decollate_batch(val_outputs)]
+    #                 val_labels = [post_label(i) for i in decollate_batch(val_labels)]
+    #                 dice_metric(val_outputs, val_labels)
+    #
+    #             mean_dice = dice_metric.aggregate().item()
+    #             dice_metric.reset()
+    #             dice_metric_values.append(mean_dice)
+    #
+    #             if mean_dice > best_metric:
+    #                 best_metric = mean_dice
+    #                 best_metric_epoch = epoch + 1
+    #                 torch.save(model.state_dict(), os.path.join(
+    #                     directory, 'out_' + out_tag, model_path))
+    #                 print("saved new best metric model")
+    #
+    #             print(
+    #                 f"current epoch: {epoch + 1} current mean dice: {mean_dice:.4f}"
+    #                 f"\nbest mean dice: {best_metric:.4f} "
+    #                 f"at epoch: {best_metric_epoch}"
+    #             )
+    #     del loss, outputs
+    # end = time.time()
+    # time_taken = end - start
+    # print(f"Time taken: {round(time_taken, 0)} seconds")
+    # time_taken_hours = time_taken / 3600
+    # time_taken_mins = np.ceil((time_taken / 3600 - int(time_taken / 3600)) * 60)
+    # time_taken_hours = int(time_taken_hours)
+    #
+    # model_name = model._get_name()
+    # loss_name = loss_function._get_name()
+    # with open(
+    #         directory + 'out_' + out_tag + '/model_info_' + str(
+    #             max_epochs) + '_epoch_' + model_name + '_' + loss_name + '_.txt', 'w') as myfile:
+    #     myfile.write(f'Train dataset size: {len(train_files)}\n')
+    #     myfile.write(f'Validation dataset size: {len(val_files)}\n')
+    #     myfile.write(f'Test dataset size: {len(test_files)}\n')
+    #     myfile.write(f'Model: {model_name}\n')
+    #     myfile.write(f'Loss function: {loss_name}\n')
+    #     myfile.write(f'Initial Learning Rate: {learning_rate}\n')
+    #     myfile.write(f'Number of epochs: {max_epochs}\n')
+    #     myfile.write(f'Batch size: {batch_size}\n')
+    #     myfile.write(f'Image size: {image_size}\n')
+    #     myfile.write(f'channels: {channels}\n')
+    #     myfile.write(f'Validation interval: {val_interval}\n')
+    #     myfile.write(f"Best metric: {best_metric:.4f}\n")
+    #     myfile.write(f"Best metric epoch: {best_metric_epoch}\n")
+    #     myfile.write(f"Time taken: {time_taken_hours} hours, {time_taken_mins} mins\n")
+    # # plot things
+    # plt.figure("train", (12, 6))
+    # plt.subplot(1, 2, 1)
+    # plt.title("Average Loss per Epoch")
+    # x = [i + 1 for i in range(len(epoch_loss_values))]
+    # y = epoch_loss_values
+    # plt.xlabel("epoch")
+    # plt.plot(x, y)
+    # plt.subplot(1, 2, 2)
+    # plt.title("Mean Dice (Accuracy)")
+    # x = [val_interval * (i + 1) for i in range(len(dice_metric_values))]
+    # y = dice_metric_values
+    # plt.xlabel("epoch")
+    # plt.plot(x, y, 'b', label="Dice on validation data")
+    # plt.legend(loc="center right")
+    # plt.savefig(os.path.join(directory + 'out_' + out_tag,
+    #                          'loss_plot_' + str(max_epochs) + '_epoch_' + model_name + '_' + loss_name + '_.png'),
+    #             bbox_inches='tight', dpi=300, format='png')
+    # plt.close()
 
     # test
 
