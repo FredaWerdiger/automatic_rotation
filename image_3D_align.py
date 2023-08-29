@@ -168,27 +168,11 @@ def decide_direction(mask, z_slice):
         return (True, False)
 
 
-# def main(im_path, mask_path, show_images=False, save_loc=None):
-masks = glob.glob('Z:/data_freda/ctp_project/CTP_DL_Data/DATA/ncct_mask/*')
-# masks = glob.glob('Z:/data_freda/ctp_project/CTP_DL_Data/DATA/ncct_mistar_mask/*')
-nccts = glob.glob('Z:/data_freda/ctp_project/CTP_DL_Data/DATA/ncct/*')
+def main(im_path, mask_path, save_loc, show_images=False):
 
-good_ones = [0, 1, 5, 6, 11, 14, 15, 17, 23, 26, 27, 31, 39, 40, 41, 42, 44, 47, 48, 50,
-             51, 54, 56, 58, 63, 66, 68, 69, 70, 71, 72, 73, 74, 75, 76, 79, 80, 83, 84, 85, 86,
-             88, 89, 91, 95, 99, 101, 102, 103, 105, 110, 111, 112, 114, 116, 127, 130, 137,
-             139, 140, 145, 150, 156, 158, 159, 162, 169, 180, 181, 184, 186, 187, 190, 199,
-             203, 208, 215, 217, 224]
-
-show_images = False
-# for im_path, mask_path in zip(nccts, masks):
-for ind in good_ones:
-    im_path = nccts[ind]
-    mask_path = masks[ind]
-    print(os.path.basename(im_path).split('.nii.gz')[0])
     # input the image plus its mask
     im = sitk.ReadImage(im_path)
     mask = sitk.ReadImage(mask_path, sitk.sitkUInt8)
-
 
     def loss_func(angle, args):
         # should decide which way to flip based on the shift
@@ -208,7 +192,6 @@ for ind in good_ones:
         print('pixel count: {}'.format(pix_count))
         return pix_count
 
-
     def loss_func_gantry(angle, args):
         angle = angle[0]
         z_slice, mask = args
@@ -226,7 +209,6 @@ for ind in good_ones:
         pix_count = mask_rotate.size - np.count_nonzero(mask_rotate)
         print('pixel count: {}'.format(pix_count))
         return pix_count
-
 
     # initialize angle
     angle_0 = [0]
@@ -341,13 +323,13 @@ for ind in good_ones:
                 dpi=250)
 
     plt.close()
-    # if save_loc is not None:
-    #     sitk.WriteImage(resampled, os.path.join(save_loc, os.path.basename(im_path).split('.nii.gz')[0] + '_aligned.nii.gz'))
-    #
-    # return angle_final
+    if save_loc is not None:
+        sitk.WriteImage(resampled, os.path.join(save_loc, os.path.basename(im_path).split('.nii.gz')[0] + '_aligned.nii.gz'))
 
-# if __name__ == '__main__':
-#
-#     if len(sys.argv) < 2:
-#         print("Usage: python image_3D_align.py path/to/image path/to/mask {show_images True or False} {save location}")
-#     main(*sys.argv[1:])
+    return angle_final
+
+if __name__ == '__main__':
+
+    if len(sys.argv) < 2:
+        print("Usage: python image_3D_align.py path/to/image path/to/mask {save location} {show_images True or False}")
+    main(*sys.argv[1:])
