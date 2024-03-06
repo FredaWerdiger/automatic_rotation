@@ -91,7 +91,7 @@ def rotate_and_resample_pitch(im, z_slice, pitch, return_slice=True, show=False)
     if show:
         new_array = sitk.GetArrayFromImage(resampled)
         plt.figure()
-        plt.imshow(np.flipud(new_array[z_slice]))
+        plt.imshow(np.flipud(new_array[z_slice]), cmap='gray')
         plt.show()
         plt.close()
 
@@ -179,16 +179,15 @@ good_ones = [0, 1, 5, 6, 11, 14, 15, 17, 23, 26, 27, 31, 39, 40, 41, 42, 44, 47,
              139, 140, 145, 150, 156, 158, 159, 162, 169, 180, 181, 184, 186, 187, 190, 199,
              203, 208, 215, 217, 224]
 
-show_images = False
+show_images = True
 # for im_path, mask_path in zip(nccts, masks):
 for ind in good_ones:
-    im_path = nccts[ind]
-    mask_path = masks[ind]
+    im_path = nccts[48]
+    mask_path = masks[48]
     print(os.path.basename(im_path).split('.nii.gz')[0])
     # input the image plus its mask
     im = sitk.ReadImage(im_path)
     mask = sitk.ReadImage(mask_path, sitk.sitkUInt8)
-
 
     def loss_func(angle, args):
         # should decide which way to flip based on the shift
@@ -237,7 +236,7 @@ for ind in good_ones:
     centroid = stats.GetCentroid(1)
     centroid_index = mask.TransformPhysicalPointToIndex(centroid)
     z_slice = centroid_index[2]
-    # show_img(im[:,:,z_slice], 'gray')
+    show_img(im[:,:,z_slice], 'gray')
 
     gantry_results = optimize.minimize(
         loss_func_gantry,
@@ -258,7 +257,7 @@ for ind in good_ones:
                                              z_slice,
                                              angle_final_gantry[0],
                                              return_slice=False,
-                                             show=False)
+                                             show=True)
     # recalculate the centroid now.
 
     # optimize
@@ -272,7 +271,7 @@ for ind in good_ones:
 
     angle_final = result.x
 
-    resampled = rotate_and_resample_yaw(im_gantry, z_slice, angle_final[0], show=False)
+    resampled = rotate_and_resample_yaw(im_gantry, z_slice, angle_final[0], show=True)
     resampled_mask = rotate_and_resample_yaw(mask_gantry, z_slice, angle_final[0], show=False)
 
     # get centroid
