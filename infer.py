@@ -79,7 +79,6 @@ def main(input_image, output_mask, hemisphere, model_dir):
         norm=Norm.BATCH,
         dropout=0.2).to(device)
 
-
     post_transforms = Compose([
             EnsureTyped(keys=["pred"]),
             Invertd(
@@ -118,7 +117,7 @@ def main(input_image, output_mask, hemisphere, model_dir):
             test_data = [post_transforms(i) for i in decollate_batch(test_data)]
 
     im = sitk.ReadImage(os.path.join(temp, os.listdir(temp)[0]))
-    im = im[:,:,:,1]
+    im = im[:, :, :, 1]
     sitk.WriteImage(im, output_mask)
     shutil.rmtree(temp, ignore_errors=True)
 
