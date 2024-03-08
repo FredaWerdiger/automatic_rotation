@@ -77,7 +77,6 @@ def main(input_image, output_mask, hemisphere, model_dir):
         norm=Norm.BATCH,
         dropout=0.2).to(device)
 
-
     post_transforms = Compose([
             EnsureTyped(keys=["pred"]),
             Invertd(
