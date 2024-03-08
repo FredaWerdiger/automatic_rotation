@@ -2,11 +2,9 @@
 import os
 import shutil
 import sys
-sys.path.append('/data/gpfs/projects/punim1086/ctp_project/MONAI/')
-sys.path.append('../MONAI/')
 os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
-from monai.data import Dataset, CacheDataset, DataLoader, decollate_batch
+from monai.data import CacheDataset, DataLoader, decollate_batch
 from monai.networks.nets import UNet
 from monai.networks.layers import Norm
 from monai.transforms import (
@@ -117,8 +115,11 @@ def main(input_image, output_mask, hemisphere, model_dir):
 
             test_data = [post_transforms(i) for i in decollate_batch(test_data)]
 
+    # +++++++++++++++++++++++
+    # SAVE THE IMAGE IN THE FILENAME REQUESTED AND REMOVE THE TWO-CHANNEL PREDICTION
+    # ++++++++++++++++++++++++
     im = sitk.ReadImage(os.path.join(temp, os.listdir(temp)[0]))
-    im = im[:,:,:,1]
+    im = im[:, :, :, 1]
     sitk.WriteImage(im, output_mask)
     shutil.rmtree(temp, ignore_errors=True)
 
