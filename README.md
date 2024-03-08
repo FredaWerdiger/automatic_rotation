@@ -26,3 +26,5 @@ infer.py {mean baseline brain image full path} {full path to output image e.g. /
 - MONAI version: 0.10.dev2237
 - Numpy version: 1.21.2
 - Pytorch version: 1.10.2
+
+  ![mask](https://github.com/FredaWerdiger/automatic_rotation/assets/56860757/a47cf833-195d-4f4b-8d48-8b0128adfff4)
